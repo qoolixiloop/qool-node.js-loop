@@ -1,29 +1,39 @@
-/* eslint-disable no-console */
-const express = require('express');
-const bodyParser = require('body-parser');
-const passport = require('passport');
+### 4_npm_todo-app_several-sub-states/jwt
+#### Source
+https://codeburst.io/node-js-by-example-part-3-31a29f5d7e9c
+#### Run Project
+$ node src/index.js
+#### Test REST API with Postman
+##### Post
+Post: http://localhost:3000/login
+Header: Content-Type:application/json
+Body: raw, JSON(application/json)
+{
+  "username" : "admin"
+  "password" : "password"
+}
+Returns:
+{
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFkbWluIn0.a-MtrJzNEEXdn9bSsEtvvpEdKWE7aSgefqSuyiahC9U"
+}
+##### Test token with jwt debugger
+https://jwt.io/
+entering the token returns header info and:
+{
+  "username": "admin"
+}
+##### Send request with Token
+Get: http://localhost:3000/todos
+Header:
+Authorization:bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFkbWluIn0.a-MtrJzNEEXdn9bSsEtvvpEdKWE7aSgefqSuyiahC9U
+#### Code
+Shows authentication procedure.
+Code patterns:  
+```js
 const LocalStrategy = require('passport-local').Strategy;
-
-//two new modules
 const BearerStrategy = require('passport-http-bearer').Strategy;
 const jwt = require('jwt-simple');
-
-const Todo = require('./Todo');
-const ADMIN = 'admin';
-const ADMIN_PASSWORD = 'password';
-
-//new constant
 const SECRET = 'mysecret';
-
-const app = express();
-app.use(bodyParser.json());
-app.use((req, res, next) => {
-  res.setHeader('cache-control', 'private, max-age=0, no-cache, no-store, must-revalidate');
-  res.setHeader('expires', '0');
-  res.setHeader('pragma', 'no-cache');
-  next();
-});
-
 /*The strategy we are going to take is that we, once authenticated by username and password, are going to return a JSON Web Token consisting of a server-signed JSON payload including the logged in username. Then, when used on future API requests, the server can validate the signature to determine the authenticated user (by the username).
 note: You can also store additional data in the JSON Web Token payload, for example a token expiration date.
 */
@@ -52,17 +62,6 @@ passport.use(new BearerStrategy((token, done) => {
   }
 }));
 
-app.post(
-  '/login',
-  //secure the endpoints: requiring a valid JSON Web Token.
-  passport.authenticate('local', { session: false }),
-  (req, res) => {
-    res.send({
-      token: req.user,
-    });
-  },
-);
-
 app.get(
   '/todos',
   //secure the endpoints: requiring a valid JSON Web Token.
@@ -74,24 +73,5 @@ app.get(
       });
   },
 );
-app.post(
-  '/todos',
-  //secure the endpoints: requiring a valid JSON Web Token.
-  passport.authenticate('bearer', { session: false }),
-  (req, res) => {
-    Todo.create({ note: req.body.note })
-      .then((todo) => {
-        res.send(todo);
-      });
-  },
-);
-app.delete(
-  '/todos/:id',
-  passport.authenticate('bearer', { session: false }),
-  (req, res) => {
-    Todo.findById(req.params.id)
-      .then(todo => todo.destroy())
-      .then(() => res.send());
-  },
-);
-app.listen(3000, () => console.log('Example app listening on port 3000!'));
+
+```
