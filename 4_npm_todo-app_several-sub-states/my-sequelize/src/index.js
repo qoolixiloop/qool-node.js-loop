@@ -1,18 +1,35 @@
 /* eslint-disable no-console */
+
+//new: module
 const Sequelize = require('sequelize');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+
+//new: Todo Class / Model / Factory
 const TodoFactory = require('../models/todo');
 
 const ADMIN = 'admin';
 const ADMIN_PASSWORD = 'password';
+
+//new: db
 const sequelize = new Sequelize('postgres://myuser:OBMITTED@localhost/mydb');
+
+//new: access db 
 sequelize
+  
+  //authentification
   .authenticate()
+  
+  //add server
   .then(() => {
+    
+    //new: (db, module) 
     const Todo = TodoFactory(sequelize, Sequelize);
+    
+    //put http server here: use, post, get, delete and listen
     const app = express();
     app.use(bodyParser.json());
     app.use((req, res, next) => {
